@@ -68,10 +68,17 @@ class ADo:
                 keyboardCtrl.release(event)
                 
 """
-"" App Start
+    App Start
 """
 if __name__ == "__main__":
     replayHotkey = '`'
     app = ADo(replayHotkey)
     app.captureEvents()
     app.waitForInput()
+    """
+        I use character ` as default hotkey for replay events.
+        Feel free to change it as your desired key by replacing the value of "replayHotkey" variable in __main__
+        In case you want to use functional key such as F1, Ctrl, Shift, etc. then you should use the pre-defined keys in pynput.keyboard.Key.<your desired key>
+
+        ESC key is the default key for terminating program.
+    """
