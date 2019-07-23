@@ -1,14 +1,16 @@
 import pyautogui # this library has better mouse moving function
 from pynput import mouse, keyboard
 from source.Event import Event
+from time import sleep, clock
 
 class ADo:
     def __init__(self):
-        self.totalModes = 2
+        self.totalModes = 3
         self.replayMethods = [
             self.restartEventList,
             self.replayEventsAllAtOnce,
-            self.replayEventsOneByOne
+            self.replayEventsOneByOne,
+            self.replayEventsWithDelay
         ]
         self.events = []
         self.enableCaptureEvents = False
@@ -17,6 +19,7 @@ class ADo:
         self.replayModes = self.initReplayModes()
         self.mouseCtrl = mouse.Controller()
         self.keyboardCtrl = keyboard.Controller()
+        self.startTime = 0
 
     def initReplayModes(self):
         replayModes = {}
@@ -28,6 +31,14 @@ class ADo:
             key.char = str(idx)
             replayModes[key] = method
         return replayModes
+
+    def setStartTime(self):
+        self.startTime = clock()         
+
+    def getDelay(self):
+        delay = round(clock() - self.startTime,2)
+        self.startTime = clock()
+        return delay
 
     def run(self):
         self.waitForCaptureCommand()
@@ -50,10 +61,12 @@ class ADo:
 
     def replayOneEvent(self, event):
         if event.eventType == 'mouse':
+            print('Replay click event {} at ({},{})'.format(event.button, event.x, event.y))
             previousPosition = pyautogui.position()
             pyautogui.move(event.x - previousPosition[0], event.y - previousPosition[1])
             self.mouseCtrl.click(event.button)
         else:
+            print('Replay keyboard event {}'.format(event.button))
             self.keyboardCtrl.press(event.button)
             self.keyboardCtrl.release(event.button)
 
@@ -70,6 +83,12 @@ class ADo:
                 self.replayOneEvent(event)
                 event.isReplayed = True
                 break
+
+    def replayEventsWithDelay(self):
+        for event in self.events:
+            print('Delay - {}'.format(event.delay))
+            sleep(event.delay)
+            self.replayOneEvent(event)
 
     def restartEventList(self):
         print('Restart event list !')
@@ -97,14 +116,18 @@ class ADo:
             return False
 
     def callBackOnClick(self, x, y, button, pressed):
+        if (self.startTime == 0):
+            self.setStartTime()
         if self.enableCaptureEvents:
             if pressed:
                 print('Capture click {} event at {}'.format(button,(x,y)))
-                self.events.append(Event('mouse',button,x,y))
+                self.events.append(Event('mouse',button,x,y, delay = self.getDelay()))
         else:
             return False
 
     def callBackOnPress(self, key):
+        if self.startTime == 0:
+            self.setStartTime()
         if self.enableCaptureEvents:        
             if key == self.stopHotkey:
                 print('Stop capturing events!!!')
@@ -113,7 +136,7 @@ class ADo:
                 return False
             else:
                 print('Capture key press {}'.format(key))
-                self.events.append(Event('keyboard',button=key))        
+                self.events.append(Event('keyboard',button = key,delay = self.getDelay()))        
 
     def callBackHotKeyPress(self, key):
         if key in self.replayModes:
