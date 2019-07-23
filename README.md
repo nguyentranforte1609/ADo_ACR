@@ -16,9 +16,9 @@ Just a simple application for auto capturing and then replaying keyboard, mouse 
    - Press 1: Replay all events without delay
    - Press 2: Replay event one by one.
      - Press 0 to restart
+   - Press 3: Replay all events with delay 
 6. Press ESC to terminal the program
 
 # Future works:
-1. New mode: Replay all event with delay. The delay is recorded during capturing phase.
-2. Make executable file
-3. Make UI
+- [ ] Make executable file  
+- [ ] Make UI
